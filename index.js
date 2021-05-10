@@ -36,7 +36,7 @@ raksix.connect = (secure_path, client_id, client_secret, keyspace) => {
             const key = Object.keys(data)
             const value = Object.values(data)
             if(key.length < 2 && value.length < 2){
-                return this.client.execute(`SELECT * FROM ${table} WHERE ${key[0]} = ?`, [value[0]])
+                return this.client.execute(`SELECT * FROM ${table} WHERE ${key[0]} = ? ALLOW FILTERING`, [value[0]])
             }else{
                 let keys_arr = []
                 key.map((a, idx) => {
@@ -47,9 +47,8 @@ raksix.connect = (secure_path, client_id, client_secret, keyspace) => {
                         keys_arr.push(`${a} = ?`)
                     }
                 })
-                console.log(keys_arr)
                 let all_keys = keys_arr.join().replaceAll(",", " ")
-                return this.client.execute(`SELECT * FROM ${table} WHERE ${all_keys} ALLOW FILTERING`, ["raksix", "raksix"])
+                return this.client.execute(`SELECT * FROM ${table} WHERE ${all_keys} ALLOW FILTERING`, value)
             }
         }
     }
