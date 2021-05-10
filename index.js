@@ -68,10 +68,37 @@ raksix.connect = (secure_path, client_id, client_secret, keyspace) => {
                     }
                 })
                 let all_keys = keys_arr.join().replaceAll(",", " ")
-                return this.client.execute(`SELECT * FROM ${table} WHERE ${all_keys} ALLOW FILTERING`, value,  {
+                return this.client.execute(`SELECT * FROM ${table} WHERE ${all_keys} ALLOW FILTERING`, value, {
                     fetchSize: ops.limit
                 })
             }
+        },
+        update: function (table, find, data) {
+            const Dkey = Object.keys(data)
+            const Dvalue = Object.values(data)
+            const key = Object.keys(find)
+            const value = Object.values(find)
+            const update_arr = []
+            const keys_arr = []
+            const this_arr = []
+            Dkey.map(a => {
+                update_arr.push(data[a])
+                this_arr.push(`${a} = ?`)
+            })
+
+            key.map((a, idx) => {
+                let keys_idx = key.length - 1
+                update_arr.push(find[a])
+                if (keys_idx > idx) {
+                    keys_arr.push(`${a} = ? AND`)
+                } else {
+                    keys_arr.push(`${a} = ?`)
+                }
+            })
+
+            let all_keys = keys_arr.join().replaceAll(",", " ")
+            const this_set = this_arr.join()
+            return this.client.execute(`UPDATE ${table} SET ${this_set} WHERE ${all_keys}`, update_arr)
         }
     }
 }
