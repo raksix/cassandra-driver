@@ -16,7 +16,7 @@ raksix.connect = (secure_path, client_id, client_secret, keyspace) => {
             })
             return this.client.execute(`CREATE TABLE ${table} (${data_arr.join()})`)
         },
-        insert_into: function(table, data) {
+        instert: function (table, data) {
             let data_arr = []
             let values = []
             let s = []
@@ -29,26 +29,48 @@ raksix.connect = (secure_path, client_id, client_secret, keyspace) => {
             })
             return this.client.execute(`INSERT INTO ${table} (${data_arr.join()}) VALUES (${s.join()})`, values)
         },
-        select: function(table) {
-            return this.client.execute(`SELECT * FROM ${table}`)
+        find_all: function (table, options) {
+            let ops = {
+                limit: 5000
+            }
+            if (options) {
+                if (options.limit) {
+                    ops.limit = options.limit
+                }
+            }
+            return this.client.execute(`SELECT * FROM ${table}`, [], {
+                fetchSize: ops.limit,
+            })
         },
-        find: function (table, data) {
+        find: function (table, data, options) {
+            let ops = {
+                limit: 5000
+            }
+            if (options) {
+                if (options.limit) {
+                    ops.limit = options.limit
+                }
+            }
             const key = Object.keys(data)
             const value = Object.values(data)
-            if(key.length < 2 && value.length < 2){
-                return this.client.execute(`SELECT * FROM ${table} WHERE ${key[0]} = ? ALLOW FILTERING`, [value[0]])
-            }else{
+            if (key.length < 2 && value.length < 2) {
+                return this.client.execute(`SELECT * FROM ${table} WHERE ${key[0]} = ? ALLOW FILTERING`, [value[0]], {
+                    fetchSize: ops.limit
+                })
+            } else {
                 let keys_arr = []
                 key.map((a, idx) => {
                     let keys_idx = key.length - 1
-                    if(keys_idx > idx){
+                    if (keys_idx > idx) {
                         keys_arr.push(`${a} = ? AND`)
-                    }else{
+                    } else {
                         keys_arr.push(`${a} = ?`)
                     }
                 })
                 let all_keys = keys_arr.join().replaceAll(",", " ")
-                return this.client.execute(`SELECT * FROM ${table} WHERE ${all_keys} ALLOW FILTERING`, value)
+                return this.client.execute(`SELECT * FROM ${table} WHERE ${all_keys} ALLOW FILTERING`, value,  {
+                    fetchSize: ops.limit
+                })
             }
         }
     }
